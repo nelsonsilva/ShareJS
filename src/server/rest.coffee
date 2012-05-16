@@ -2,7 +2,6 @@
 #
 # See the docs for details and examples about how the protocol works.
 
-http = require 'http'
 url = require 'url'
 
 connect = require 'connect'

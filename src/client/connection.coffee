@@ -13,15 +13,12 @@
 
 if WEB?
   types = exports.types
-  throw new Error 'Must load browserchannel before this library' unless window.BCSocket
-  {BCSocket} = window
 else
   types = require '../types'
-  {BCSocket} = require 'browserchannel'
   Doc = require('./doc').Doc
 
 class Connection
-  constructor: (host) ->
+  constructor: (host, callback) ->
     # Map of docname -> doc
     @docs = {}
 
@@ -32,9 +29,10 @@ class Connection
     # - 'disconnected': The connection is closed, but it will not reconnect automatically.
     # - 'stopped': The connection is closed, and will not reconnect.
     @state = 'connecting'
-    @socket = new BCSocket host, reconnect:true
+    @socket = new SockJS host
 
-    @socket.onmessage = (msg) =>
+    @socket.onmessage = (e) =>
+      msg = JSON.parse e.data
       if msg.auth is null
         # Auth failed.
         @lastError = msg.error # 'forbidden'
@@ -73,6 +71,7 @@ class Connection
       #console.warn 'onopen'
       @lastError = @lastReceivedDoc = @lastSentDoc = null
       @setState 'handshaking'
+      callback()
 
     @socket.onconnecting = =>
       #console.warn 'connecting'
@@ -91,6 +90,7 @@ class Connection
       doc._connectionStateChanged state, data
 
   send: (data) ->
+    #return unless @state is @state = 'handshaking' or @state is 'ok'
     docName = data.doc
 
     if docName is @lastSentDoc
@@ -99,7 +99,7 @@ class Connection
       @lastSentDoc = docName
 
     #console.warn 'c->s', data
-    @socket.send data
+    @socket.send JSON.stringify(data)
 
   disconnect: ->
     # This will call @socket.onclose(), which in turn will emit the 'disconnected' event.
