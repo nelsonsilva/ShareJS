@@ -1,5 +1,5 @@
 (function() {
-  var BCSocket, Connection, Doc, MicroEvent, append, bootstrapTransform, checkValidComponent, checkValidOp, exports, invertComponent, nextTick, strInject, text, transformComponent, transformPosition, types,
+  var Connection, Doc, MicroEvent, append, bootstrapTransform, checkValidComponent, checkValidOp, exports, invertComponent, nextTick, strInject, text, transformComponent, transformPosition, types,
     __slice = Array.prototype.slice,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -701,28 +701,22 @@
   exports.Doc = Doc;
 
   if (typeof WEB !== "undefined" && WEB !== null) {
-    types || (types = exports.types);
-    if (!window.BCSocket) {
-      throw new Error('Must load browserchannel before this library');
-    }
-    BCSocket = window.BCSocket;
+    types = exports.types;
   } else {
     types = require('../types');
-    BCSocket = require('browserchannel').BCSocket;
     Doc = require('./doc').Doc;
   }
 
   Connection = (function() {
 
-    function Connection(host) {
+    function Connection(host, callback) {
       var _this = this;
       this.docs = {};
       this.state = 'connecting';
-      this.socket = new BCSocket(host, {
-        reconnect: true
-      });
-      this.socket.onmessage = function(msg) {
-        var docName;
+      this.socket = new SockJS(host);
+      this.socket.onmessage = function(e) {
+        var docName, msg;
+        msg = JSON.parse(e.data);
         if (msg.auth === null) {
           _this.lastError = msg.error;
           _this.disconnect();
@@ -756,7 +750,8 @@
       };
       this.socket.onopen = function() {
         _this.lastError = _this.lastReceivedDoc = _this.lastSentDoc = null;
-        return _this.setState('handshaking');
+        _this.setState('handshaking');
+        return callback();
       };
       this.socket.onconnecting = function() {
         return _this.setState('connecting');
@@ -786,7 +781,7 @@
       } else {
         this.lastSentDoc = docName;
       }
-      return this.socket.send(data);
+      return this.socket.send(JSON.stringify(data));
     };
 
     Connection.prototype.disconnect = function() {
@@ -859,7 +854,7 @@
   exports.open = (function() {
     var connections, getConnection, maybeClose;
     connections = {};
-    getConnection = function(origin) {
+    getConnection = function(origin, callback) {
       var c, del, location;
       if (typeof WEB !== "undefined" && WEB !== null) {
         location = window.location;
@@ -868,7 +863,7 @@
         }
       }
       if (!connections[origin]) {
-        c = new Connection(origin);
+        c = new Connection(origin, callback);
         del = function() {
           return delete connections[origin];
         };
@@ -894,18 +889,19 @@
         callback = origin;
         origin = null;
       }
-      c = getConnection(origin);
-      c.numDocs++;
-      c.open(docName, type, function(error, doc) {
-        if (error) {
-          callback(error);
-          return maybeClose(c);
-        } else {
-          doc.on('closed', function() {
+      c = getConnection(origin, function() {
+        c.numDocs++;
+        return c.open(docName, type, function(error, doc) {
+          if (error) {
+            callback(error);
             return maybeClose(c);
-          });
-          return callback(null, doc);
-        }
+          } else {
+            doc.on('closed', function() {
+              return maybeClose(c);
+            });
+            return callback(null, doc);
+          }
+        });
       });
       c.on('connect failed');
       return c;

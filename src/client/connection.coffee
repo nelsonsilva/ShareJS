@@ -16,7 +16,6 @@ if WEB?
   {BCSocket, SockJS} = window 
 else
   types = require '../types'
-  {BCSocket} = require 'browserchannel'
   Doc = require('./doc').Doc
 
 class Connection
@@ -32,7 +31,6 @@ class Connection
     # - 'disconnected': The connection is closed, but it will not reconnect automatically.
     # - 'stopped': The connection is closed, and will not reconnect.
     @state = 'connecting'
-
     @socket = 
       if useSockJS
         new SockJS(host)    
@@ -79,6 +77,7 @@ class Connection
       #console.warn 'onopen'
       @lastError = @lastReceivedDoc = @lastSentDoc = null
       @setState 'handshaking'
+      callback()
 
     @socket.onconnecting = =>
       #console.warn 'connecting'
@@ -97,6 +96,7 @@ class Connection
       doc._connectionStateChanged state, data
 
   send: (data) ->
+    #return unless @state is @state = 'handshaking' or @state is 'ok'
     docName = data.doc
 
     if docName is @lastSentDoc
