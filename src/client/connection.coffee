@@ -77,7 +77,6 @@ class Connection
       #console.warn 'onopen'
       @lastError = @lastReceivedDoc = @lastSentDoc = null
       @setState 'handshaking'
-      callback()
 
     @socket.onconnecting = =>
       #console.warn 'connecting'

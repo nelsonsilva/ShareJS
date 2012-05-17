@@ -28,7 +28,7 @@ exports.open = do ->
   # This is a private connection pool for implicitly created connections.
   connections = {}
 
-  getConnection = (origin, callback) ->
+  getConnection = (origin) ->
     if WEB?
       location = window.location
       # default to browserchannel
@@ -36,7 +36,7 @@ exports.open = do ->
       origin ?= "#{location.protocol}//#{location.host}/#{path}"
     
     unless connections[origin]
-      c = new Connection origin, callback
+      c = new Connection origin
 
       del = -> delete connections[origin]
       c.on 'disconnecting', del
@@ -60,7 +60,7 @@ exports.open = do ->
       callback = origin
       origin = null
 
-    c = getConnection origin, ->
+    c = getConnection origin
       c.numDocs++
       c.open docName, type, (error, doc) ->
         if error
