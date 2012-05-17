@@ -61,15 +61,15 @@ exports.open = do ->
       origin = null
 
     c = getConnection origin
-      c.numDocs++
-      c.open docName, type, (error, doc) ->
-        if error
-          callback error
-          maybeClose c
-        else
-          doc.on 'closed', -> maybeClose c
-         
-          callback null, doc
+    c.numDocs++
+    c.open docName, type, (error, doc) ->
+      if error
+        callback error
+        maybeClose c
+      else
+        doc.on 'closed', -> maybeClose c
+       
+        callback null, doc
     
     c.on 'connect failed'
     return c

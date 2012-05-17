@@ -63,7 +63,9 @@ var options = {
     } else {
       action.accept();
     }
-  }
+  },
+  browserChannel: null,
+  sockjs: {}
 };
 
 // Lets try and enable redis persistance if redis is installed...

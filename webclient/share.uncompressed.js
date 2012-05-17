@@ -1,5 +1,5 @@
 (function() {
-  var Connection, Doc, MicroEvent, append, bootstrapTransform, checkValidComponent, checkValidOp, exports, invertComponent, nextTick, strInject, text, transformComponent, transformPosition, types,
+  var BCSocket, Connection, Doc, MicroEvent, SockJS, append, bootstrapTransform, checkValidComponent, checkValidOp, exports, hasBCSocket, hasSockJS, invertComponent, nextTick, strInject, text, transformComponent, transformPosition, types, useSockJS,
     __slice = Array.prototype.slice,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -702,6 +702,7 @@
 
   if (typeof WEB !== "undefined" && WEB !== null) {
     types = exports.types;
+    BCSocket = window.BCSocket, SockJS = window.SockJS;
   } else {
     types = require('../types');
     Doc = require('./doc').Doc;
@@ -709,14 +710,16 @@
 
   Connection = (function() {
 
-    function Connection(host, callback) {
+    function Connection(host) {
       var _this = this;
       this.docs = {};
       this.state = 'connecting';
-      this.socket = new SockJS(host);
-      this.socket.onmessage = function(e) {
-        var docName, msg;
-        msg = JSON.parse(e.data);
+      this.socket = useSockJS ? new SockJS(host) : new BCSocket(host, {
+        reconnect: true
+      });
+      this.socket.onmessage = function(msg) {
+        var docName;
+        if (useSockJS) msg = JSON.parse(msg.data);
         if (msg.auth === null) {
           _this.lastError = msg.error;
           _this.disconnect();
@@ -750,8 +753,7 @@
       };
       this.socket.onopen = function() {
         _this.lastError = _this.lastReceivedDoc = _this.lastSentDoc = null;
-        _this.setState('handshaking');
-        return callback();
+        return _this.setState('handshaking');
       };
       this.socket.onconnecting = function() {
         return _this.setState('connecting');
@@ -781,7 +783,8 @@
       } else {
         this.lastSentDoc = docName;
       }
-      return this.socket.send(JSON.stringify(data));
+      if (useSockJS) data = JSON.stringify(data);
+      return this.socket.send(data);
     };
 
     Connection.prototype.disconnect = function() {
@@ -810,6 +813,12 @@
     Connection.prototype.open = function(docName, type, callback) {
       var doc;
       if (this.state === 'stopped') return callback('connection closed');
+      if (this.state !== 'ok') {
+        this.on('ok', function() {
+          return this.open(docName, type, callback);
+        });
+        return;
+      }
       if (typeof type === 'function') {
         callback = type;
         type = 'text';
@@ -847,23 +856,31 @@
 
   exports.Connection = Connection;
 
-  if (typeof WEB === "undefined" || WEB === null) {
+  if (typeof WEB !== "undefined" && WEB !== null) {
+    hasBCSocket = window.BCSocket !== void 0;
+    hasSockJS = window.SockJS !== void 0;
+    if (!(hasBCSocket || hasSockJS)) {
+      throw new Error('Must load socks or browserchannel before this library');
+    }
+    useSockJS = hasSockJS && !hasBCSocket;
+  } else {
     Connection = require('./connection').Connection;
   }
 
   exports.open = (function() {
     var connections, getConnection, maybeClose;
     connections = {};
-    getConnection = function(origin, callback) {
-      var c, del, location;
+    getConnection = function(origin) {
+      var c, del, location, path;
       if (typeof WEB !== "undefined" && WEB !== null) {
         location = window.location;
+        path = useSockJS ? 'sockjs' : 'channel';
         if (origin == null) {
-          origin = "" + location.protocol + "//" + location.host + "/channel";
+          origin = "" + location.protocol + "//" + location.host + "/" + path;
         }
       }
       if (!connections[origin]) {
-        c = new Connection(origin, callback);
+        c = new Connection(origin);
         del = function() {
           return delete connections[origin];
         };
@@ -889,19 +906,18 @@
         callback = origin;
         origin = null;
       }
-      c = getConnection(origin, function() {
-        c.numDocs++;
-        return c.open(docName, type, function(error, doc) {
-          if (error) {
-            callback(error);
+      c = getConnection(origin);
+      c.numDocs++;
+      c.open(docName, type, function(error, doc) {
+        if (error) {
+          callback(error);
+          return maybeClose(c);
+        } else {
+          doc.on('closed', function() {
             return maybeClose(c);
-          } else {
-            doc.on('closed', function() {
-              return maybeClose(c);
-            });
-            return callback(null, doc);
-          }
-        });
+          });
+          return callback(null, doc);
+        }
       });
       c.on('connect failed');
       return c;

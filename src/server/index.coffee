@@ -50,6 +50,7 @@ create.attach = attach = (server, options, model = createModel(options)) ->
   sockjs.attach(server, createAgent, options.sockjs or {}) if options.sockjs?
 
   if options.browserChannel != null
+    console.log "browserChannel #{options.browserChannel}"
     options.browserChannel ?= {}
     #options.browserChannel.base ?= '/sjs'
     options.browserChannel.server = server
