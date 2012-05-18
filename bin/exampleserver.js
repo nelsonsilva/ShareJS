@@ -7,7 +7,7 @@ require("node.vert.x")
 
 //require('coffee-script');
 var connect = require('connect'),
-	sharejs = require('../src'),
+	sharejs = require('../lib'),
 	hat = require('hat').rack(32, 36);
 
 /* TODO: Support optimist

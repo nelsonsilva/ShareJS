@@ -19,7 +19,7 @@ task 'examples', 'Build the examples .js files', (options) ->
 		console.log stdout + stderr
 
 task 'vert.x', 'Run vert.x', ->
-    spawn "vertx", ['run', 'bin/exampleserver'], {customFds: [0..2]}
+    spawn "vertx", ['run', 'bin/exampleserver.js'], {customFds: [0..2]}
 
 client = [
 	'client/web-prelude'
