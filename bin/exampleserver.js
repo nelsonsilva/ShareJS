@@ -1,25 +1,30 @@
-#!/usr/bin/env node
+require("node.vert.x")
 
 // This is a simple example sharejs server which hosts the sharejs
 // examples in examples/.
 //
 // It demonstrates a few techniques to get different application behaviour.
 
-require('coffee-script');
+//require('coffee-script');
 var connect = require('connect'),
 	sharejs = require('../src'),
 	hat = require('hat').rack(32, 36);
 
+/* TODO: Support optimist
 var argv = require('optimist').
 	usage("Usage: $0 [-p portnum]").
 	default('p', 8000).
 	alias('p', 'port').
 	argv;
+*/
+
+argv={p:8080};
 
 var server = connect(
 	connect.favicon(),
 	connect.static(__dirname + '/../examples'),
 	connect.router(function (app) {
+
 		var renderer = require('../examples/_static');
 		app.get('/static/:docName', function(req, res, next) {
 			var docName;

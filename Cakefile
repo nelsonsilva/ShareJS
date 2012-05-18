@@ -1,4 +1,4 @@
-{exec} = require 'child_process'
+{exec,spawn} = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 
@@ -12,6 +12,14 @@ task 'build', 'Build the .js files', (options) ->
 	exec "coffee --compile --bare --output lib/ src/", (err, stdout, stderr) ->
 		throw err if err
 		console.log stdout + stderr
+
+task 'examples', 'Build the examples .js files', (options) ->
+	exec "coffee --compile --bare examples/", (err, stdout, stderr) ->
+		throw err if err
+		console.log stdout + stderr
+
+task 'vert.x', 'Run vert.x', ->
+    spawn "vertx", ['run', 'bin/exampleserver'], {customFds: [0..2]}
 
 client = [
 	'client/web-prelude'

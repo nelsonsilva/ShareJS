@@ -11,6 +11,7 @@
     "sharejs-exampleserver": "bin/exampleserver"
   },
   "dependencies": {
+    "node.vert.x": "git://github.com/nelsonsilva/node.vert.x.git",
     "sockjs-node.vert.x": "git://github.com/nelsonsilva/sockjs-node.vert.x.git",
     "connect.vert.x": "git://github.com/nelsonsilva/connect.vert.x.git",
     "optimist": ">= 0.2.4",
