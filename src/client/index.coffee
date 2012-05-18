@@ -68,7 +68,7 @@ exports.open = do ->
         maybeClose c
       else
         doc.on 'closed', -> maybeClose c
-       
+
         callback null, doc
     
     c.on 'connect failed'
