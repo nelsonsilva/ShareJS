@@ -11,17 +11,19 @@
     "sharejs-exampleserver": "bin/exampleserver"
   },
   "dependencies": {
-    "node.vert.x": "git://github.com/nelsonsilva/node.vert.x.git",
-    "sockjs-node.vert.x": "git://github.com/nelsonsilva/sockjs-node.vert.x.git",
-    "connect.vert.x": "git://github.com/nelsonsilva/connect.vert.x.git",
+    "sockjs": ">= 0.3.1",
+    "socket.io": "~0.8",
+    "socket.io-client": "~0.8",
+    "connect": ">= 1.1.1 < 2.0.0",
     "optimist": ">= 0.2.4",
     "uglify-js": "~1",
     "request": ">= 2.1.1",
+    "coffee-script": "= 1.1.0",
+    "browserchannel": "*",
     "hat": "*"
   },
   "devDependencies": {
-    "nodeunit": "*",
-    "coffee-script": "= 1.1.0"
+    "nodeunit": "*"
   },
   "engine": "node >= 0.4.4",
   "scripts": {

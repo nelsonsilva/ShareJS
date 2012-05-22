@@ -1,5 +1,3 @@
-require("node.vert.x")
-
 // This is a simple example sharejs server which hosts the sharejs
 // examples in examples/.
 //
