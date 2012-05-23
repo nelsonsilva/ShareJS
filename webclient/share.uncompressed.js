@@ -714,12 +714,14 @@
       var _this = this;
       this.docs = {};
       this.state = 'connecting';
-      this.socket = useSockJS ? new SockJS(host) : new BCSocket(host, {
+      this.socket = typeof useSockJS !== "undefined" && useSockJS !== null ? new SockJS(host) : new BCSocket(host, {
         reconnect: true
       });
       this.socket.onmessage = function(msg) {
         var docName;
-        if (useSockJS) msg = JSON.parse(msg.data);
+        if (typeof useSockJS !== "undefined" && useSockJS !== null) {
+          msg = JSON.parse(msg.data);
+        }
         if (msg.auth === null) {
           _this.lastError = msg.error;
           _this.disconnect();
@@ -783,7 +785,9 @@
       } else {
         this.lastSentDoc = docName;
       }
-      if (useSockJS) data = JSON.stringify(data);
+      if (typeof useSockJS !== "undefined" && useSockJS !== null) {
+        data = JSON.stringify(data);
+      }
       return this.socket.send(data);
     };
 
@@ -813,8 +817,8 @@
     Connection.prototype.open = function(docName, type, callback) {
       var doc;
       if (this.state === 'stopped') return callback('connection closed');
-      if (this.state !== 'ok') {
-        this.on('ok', function() {
+      if (this.state === 'connecting') {
+        this.on('handshaking', function() {
           return this.open(docName, type, callback);
         });
         return;

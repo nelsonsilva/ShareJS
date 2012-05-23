@@ -6,7 +6,7 @@ Model = require './model'
 createDb = require './db'
 
 rest = require './rest'
-sockjs = require './sockjs'
+sockjs = require './sock'
 
 # Create an HTTP server and attach whatever frontends are specified in the options.
 #
