@@ -8,15 +8,11 @@ var connect = require('connect'),
 	sharejs = require('../lib'),
 	hat = require('hat').rack(32, 36);
 
-/* TODO: Support optimist
 var argv = require('optimist').
-	usage("Usage: $0 [-p portnum]").
-	default('p', 8000).
-	alias('p', 'port').
-	argv;
-*/
-
-argv={p:8080};
+    usage("Usage: $0 [-p portnum]").
+    default('p', 8000).
+    alias('p', 'port').
+    argv;
 
 var server = connect(
 	connect.favicon(),
