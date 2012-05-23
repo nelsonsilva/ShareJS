@@ -43,18 +43,8 @@ create.attach = attach = (server, options, model = createModel(options)) ->
   # done properly.
   server.use rest(createAgent, options.rest) if options.rest != null
 
-  # Socketio frontend is now disabled by default.
-  socketio.attach(server, createAgent, options.socketio or {}) if options.socketio?
-
   # SockJS frontend is disabled by default
   sockjs.attach(server, createAgent, options.sockjs or {}) if options.sockjs?
-
-  if options.browserChannel != null
-    console.log "browserChannel #{options.browserChannel}"
-    options.browserChannel ?= {}
-    #options.browserChannel.base ?= '/sjs'
-    options.browserChannel.server = server
-    server.use browserChannel(createAgent, options.browserChannel)
 
   server
 

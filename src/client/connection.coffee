@@ -19,7 +19,6 @@ else
   Doc = require('./doc').Doc
 
 class Connection
-
   constructor: (host) ->
     # Map of docname -> doc
     @docs = {}
@@ -32,13 +31,13 @@ class Connection
     # - 'stopped': The connection is closed, and will not reconnect.
     @state = 'connecting'
     @socket = 
-      if useSockJS
+      if useSockJS?
         new SockJS(host)    
       else
         new BCSocket(host, reconnect:true)
     
     @socket.onmessage = (msg) =>
-      msg = JSON.parse(msg.data) if useSockJS
+      msg = JSON.parse(msg.data) if useSockJS?
       if msg.auth is null
         # Auth failed.
         @lastError = msg.error # 'forbidden'
@@ -104,7 +103,7 @@ class Connection
       @lastSentDoc = docName
 
     #console.warn 'c->s', data
-    data = JSON.stringify(data) if useSockJS
+    data = JSON.stringify(data) if useSockJS?
     @socket.send data
 
   disconnect: ->
@@ -139,8 +138,8 @@ class Connection
     return callback 'connection closed' if @state is 'stopped'
 
     # Wait for the connection to open
-    if @state != 'ok'
-      @on 'ok', -> @open(docName, type, callback)
+    if @state is 'connecting'
+      @on 'handshaking', -> @open(docName, type, callback)
       return
 
     if typeof type is 'function'
